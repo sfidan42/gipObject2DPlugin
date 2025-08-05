@@ -12,9 +12,6 @@ Object2D<Type2D::VECTOR, P, TX>::~Object2D() {
 	for(auto* child : children) {
 		delete child;
 	}
-	for(auto* texture : texturelist) {
-		delete texture;
-	}
 }
 
 template <Pos2D P, Tex2D TX>
@@ -61,9 +58,30 @@ void Object2D<Type2D::VECTOR, P, TX>::draw() const {
 }
 
 template <Pos2D P, Tex2D TX>
-void Object2D<Type2D::VECTOR, P, TX>::addTexture(typename Texture2DTraits<TX>::type* texture) {
-	texturelist.push_back(texture);
+void Object2D<Type2D::VECTOR, P, TX>::addTexture(typename Texture2DTraits<TX>::type&& texture) {
+	texturelist.push_back(std::move(texture));
 	gLogi("Object2D<Type2D::VECTOR, P, TX>::addTexture") << "Total textures: " << texturelist.size();
+}
+
+template <Pos2D P, Tex2D TX>
+template <Tex2D tx, typename std::enable_if<tx == Tex2D::SPRITE, int>::type>
+void Object2D<Type2D::VECTOR, P, TX>::addTexture(const std::string& fmt, const int iBeg, const int iEnd) {
+	using Texture = typename Texture2DTraits<TX>::type;
+	Texture texture = loadAnimationFrames(fmt, iBeg, iEnd);
+	if (texture.frames.empty()) {
+		gLoge("Object2D<Type2D::VECTOR, P, TX>::addTexture")
+			<< "Failed to load animation frames from: " << fmt;
+		return;
+	}
+	texturelist.push_back(std::move(texture));
+}
+
+template <Pos2D P, Tex2D TX>
+template <Tex2D tx, typename std::enable_if<tx == Tex2D::IMAGE, int>::type>
+void Object2D<Type2D::VECTOR, P, TX>::addTexture(const std::string& path) {
+	using Texture = typename Texture2DTraits<TX>::type;
+	Texture* texture = loadFrame(path);
+	texturelist.push_back(texture);
 }
 
 template <Pos2D P, Tex2D TX>
@@ -75,8 +93,7 @@ void Object2D<Type2D::VECTOR, P, TX>::addObject2D(size_t textureIndex, const glm
 		gLoge("Object2D<Type2D::VECTOR, P, TX>::addObject2D") << "Index out of bounds: " << textureIndex;
 		return;
 	}
-	TextureType* texture = texturelist[textureIndex];
-	auto* child = new Object2D<Type2D::NODE, P, TX>(texture, pos, angle, size, scale);
+	auto* child = new Object2D<Type2D::NODE, P, TX>(&texturelist[textureIndex], pos, angle, size, scale);
 	children.push_back(child);
 }
 

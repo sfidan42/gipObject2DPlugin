@@ -8,6 +8,7 @@
 #include <vector>
 #include <glm/glm.hpp>
 #include "animation/SpriteAnimator.h"
+#include "Frame.h"
 #include "AnimationFrames.h"
 
 enum class Type2D { INTERFACE, NODE, VECTOR };
@@ -36,7 +37,7 @@ struct Texture2DTraits;
 
 template <>
 struct Texture2DTraits<Tex2D::IMAGE> {
-	using type = gImage;
+	using type = Frame;
 };
 
 template <>
@@ -52,7 +53,7 @@ class Object2D<Type2D::INTERFACE, P, TX> {
 	using TextureType = typename Texture2DTraits<TX>::type;
 
 public:
-	Object2D(TextureType* _texture);
+	Object2D(const TextureType* texturePtr);
 	virtual ~Object2D() = default;
 	virtual glm::vec2 getPosition() const = 0;
 	virtual glm::vec2 getMidPosition() const = 0;
@@ -67,14 +68,14 @@ public:
 	Object2D<Type2D::NODE, Pos2D::MOVING, TX>* getMovable();
 	Object2D<Type2D::NODE, P, Tex2D::SPRITE>* getAnimated();
 
-	TextureType* getTexture() const { return texture; }
+	const TextureType* getTexture() const { return textureptr; }
 
 	bool collision(float& outMarginLen, const glm::vec2& clickPos) const;
 	bool collision(const glm::vec4& rect);
 	bool collision(const glm::vec2& minBoundary, const glm::vec2& maxBoundary);
 
 protected:
-	TextureType* texture;
+	const TextureType* textureptr;
 };
 
 #include "datatypes/Object2DInterface.tpp"
@@ -86,11 +87,11 @@ class Object2D<Type2D::NODE, P, TX> : public Object2D<Type2D::INTERFACE, P, TX> 
 	using Position4DType = typename Position2DTraits<P>::type4d;
 
 public:
-	template <Pos2D p = P, std::enable_if_t<p == Pos2D::FIXED, int>  = 0>
+	template <Pos2D p = P, std::enable_if_t<p == Pos2D::FIXED, int> = 0>
 	Object2D(TextureType* texture, const glm::vec2& _pos,
 	         float _angle, const glm::vec2& _size, float _scale = 1.0f);
 
-	template <Pos2D p = P, std::enable_if_t<p == Pos2D::MOVING, int>  = 0>
+	template <Pos2D p = P, std::enable_if_t<p == Pos2D::MOVING, int> = 0>
 	Object2D(TextureType* texture, const glm::vec2& _pos, const glm::vec2& _speed,
 	         float _angle, const glm::vec2& _size, float _scale = 1.0f);
 
@@ -128,6 +129,9 @@ public:
 	void draw();
 
 private:
+	void Object2DImpl(std::integral_constant<Tex2D, Tex2D::IMAGE>, TextureType* texture) { animator = nullptr; }
+	void Object2DImpl(std::integral_constant<Tex2D, Tex2D::SPRITE>, TextureType* texture);
+
 	void drawImpl(std::integral_constant<Tex2D, Tex2D::IMAGE>);
 	void drawImpl(std::integral_constant<Tex2D, Tex2D::SPRITE>);
 
@@ -166,7 +170,13 @@ public:
 
 	void draw() const;
 
-	void addTexture(TextureType* texture);
+	void addTexture(TextureType&& texture);
+
+	template <Tex2D tx = TX, std::enable_if_t<tx == Tex2D::SPRITE, int>  = 0>
+	void addTexture(const std::string& fmt, const int iBeg, const int iEnd);
+
+	template <Tex2D tx = TX, std::enable_if_t<tx == Tex2D::IMAGE, int>  = 0>
+	void addTexture(const std::string& path);
 
 	template <Pos2D p = P, std::enable_if_t<p == Pos2D::FIXED, int>  = 0>
 	void addObject2D(size_t textureIndex, const glm::vec2& pos,
@@ -193,7 +203,7 @@ private:
 	bool dieinborder = false;
 
 	std::vector<Object2D<Type2D::INTERFACE, P, TX>*> children;
-	std::vector<TextureType*> texturelist;
+	std::vector<TextureType> texturelist;
 };
 
 #include "datatypes/Object2DVector.tpp"

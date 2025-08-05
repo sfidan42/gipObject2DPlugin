@@ -20,10 +20,10 @@ public:
 	void changeAnimation(int id);
 	void changeCurrentFps(int fps);
 	void update(float deltaTime);
-	void draw(int x, int y, float angle = 0.0f);
-	void draw(int x, int y, int w, int h, float angle = 0.0f);
-	void draw(const glm::vec2& pos);
-	void draw(const glm::vec2& pos, const glm::vec2& size, float angle = 0.0f);
+	void draw(int x, int y, float angle = 0.0f) const;
+	void draw(int x, int y, int w, int h, float angle = 0.0f) const;
+	void draw(const glm::vec2& pos) const;
+	void draw(const glm::vec2& pos, const glm::vec2& size, float angle = 0.0f) const;
 	const gImage* getCurrentFrame() const;
 private:
 	std::vector<SpriteAnimation*> animations;

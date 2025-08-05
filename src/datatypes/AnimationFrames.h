@@ -6,6 +6,7 @@
 #define ANIMATEDFRAMES_H
 #include <vector>
 #include "gImage.h"
+#include <cstdio>
 
 struct AnimationFrames {
 	AnimationFrames() = default;
@@ -18,6 +19,6 @@ struct AnimationFrames {
 	std::vector<gImage*> frames;
 };
 
-AnimationFrames loadAnimatedFrames(const std::vector<std::string>& framePaths);
+AnimationFrames loadAnimationFrames(const std::string& fmt, const int iBeg, const int iEnd);
 
 #endif //ANIMATEDFRAMES_H

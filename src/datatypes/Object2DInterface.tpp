@@ -1,8 +1,8 @@
 #pragma once
 
 template <Pos2D P, Tex2D TX>
-Object2D<Type2D::INTERFACE, P, TX>::Object2D(typename Texture2DTraits<TX>::type* _texture)
-	: texture(_texture) {
+Object2D<Type2D::INTERFACE, P, TX>::Object2D(const typename Texture2DTraits<TX>::type* texturePtr)
+	: textureptr(texturePtr) {
 }
 
 template <Pos2D P, Tex2D TX>

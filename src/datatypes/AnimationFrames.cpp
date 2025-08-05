@@ -23,13 +23,20 @@ AnimationFrames& AnimationFrames::operator=(AnimationFrames&& other) noexcept {
 	return *this;
 }
 
-AnimationFrames loadAnimatedFrames(const std::vector<std::string>& framePaths) {
-	AnimationFrames animatedFrames;
-	animatedFrames.frames.reserve(framePaths.size());
-	for(const auto& path : framePaths) {
-		auto img = new gImage();
-		img->loadImage(path);
-		animatedFrames.frames.push_back(img);
+AnimationFrames loadAnimationFrames(const std::string& fmt, const int iBeg, const int iEnd) {
+	AnimationFrames ret;
+	char buffer[256];
+	ret.frames.reserve(iEnd - iBeg + 1);
+	for (int i = iBeg; i <= iEnd; ++i) {
+		std::snprintf(buffer, sizeof(buffer), fmt.c_str(), i);
+		std::string path(buffer);
+		auto* frame = new gImage();
+		if(!frame->loadImage(path)) {
+			gLoge("AnimationFrames::loadAnimationFrames") << "Failed to load image from: " << path;
+			delete frame;
+			continue;
+		}
+		ret.frames.push_back(frame);
 	}
-	return animatedFrames;
+	return ret;
 }

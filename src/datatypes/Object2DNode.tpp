@@ -8,14 +8,7 @@ Object2D<Type2D::NODE, P, TX>::Object2D(typename Texture2DTraits<TX>::type* text
 	: Object2D<Type2D::INTERFACE, P, TX>(texture), pos(_pos), size(_size * _scale), angle(_angle), speed(0.0f) {
 	static int sid;
 	this->id = sid++;
-	if (TX == Tex2D::IMAGE) {
-		this->animator = nullptr;
-	} else {
-		this->animator = new SpriteAnimator();
-		const auto* animatedFrames = dynamic_cast<const AnimationFrames*>(texture);
-		auto* anim = new SpriteAnimation(animatedFrames);
-		this->animator->addAnimation(anim);
-	}
+	Object2DImpl(std::integral_constant<Tex2D, TX>(), texture);
 	gLogi("Object2D<Type2D::NODE, Pos2D::" + gToStr(static_cast<int>(P)) + ", Tex2D::" + gToStr(static_cast<int>(TX)) + ">::Object2D")
 		<< "Created Object2D with id: " << this->id
 		<< ", pos: " << pos.x << ", " << pos.y
@@ -30,14 +23,7 @@ Object2D<Type2D::NODE, P, TX>::Object2D(typename Texture2DTraits<TX>::type* text
     : Object2D<Type2D::INTERFACE, P, TX>(texture), pos(_pos), size(_size * _scale), angle(_angle), speed(_speed) {
 	static int sid;
 	this->id = sid++;
-	if (TX == Tex2D::IMAGE) {
-		this->animator = nullptr;
-	} else {
-		this->animator = new SpriteAnimator();
-		const auto* animatedFrames = dynamic_cast<const AnimationFrames*>(texture);
-		auto* anim = new SpriteAnimation(animatedFrames);
-		this->animator->addAnimation(anim);
-	}
+	Object2DImpl(std::integral_constant<Tex2D, TX>(), texture);
 	gLogi("Object2D<Type2D::NODE, Pos2D::" + gToStr(static_cast<int>(P)) + ", Tex2D::" + gToStr(static_cast<int>(TX)) + ">::Object2D")
 		<< "Created Object2D with id: " << this->id
 		<< ", pos: " << pos.x << ", " << pos.y
@@ -45,6 +31,16 @@ Object2D<Type2D::NODE, P, TX>::Object2D(typename Texture2DTraits<TX>::type* text
 		<< ", draw angle: " << angle
 		<< ", speed: " << speed.x << ", " << speed.y;
 }
+
+
+template <Pos2D P, Tex2D TX>
+void Object2D<Type2D::NODE, P, TX>::Object2DImpl(std::integral_constant<Tex2D, Tex2D::SPRITE>, TextureType* texture) {
+	this->animator = new SpriteAnimator();
+	auto* anim = new SpriteAnimation(texture);
+	this->animator->addAnimation(anim);
+	this->animator->changeAnimation(anim->getId());
+}
+
 
 template<Pos2D P, Tex2D TX>
 template<Type2D TP2, Pos2D P2>
@@ -57,7 +53,7 @@ Object2D<Type2D::NODE, P, TX>::Object2D(
 	this->id = sid++;
 	this->rect = object.getRect();
 	this->animator = new SpriteAnimator();
-	auto* anim = new SpriteAnimation(Object2D<Type2D::INTERFACE, P, TX>::texture);
+	auto* anim = new SpriteAnimation(Object2D<Type2D::INTERFACE, P, TX>::textureptr);
 	this->animator->addAnimation(anim);
 	gLogi("Object2D<Type2D::NODE, Pos2D::" + gToStr(static_cast<int>(P)) + ", Tex2D::" + gToStr(static_cast<int>(TX)) + ">::Object2D")
 		<< "Copied Object2D with id: " << id
@@ -121,15 +117,28 @@ void Object2D<Type2D::NODE, P, TX>::draw() {
 // IMAGE
 template <Pos2D P, Tex2D TX>
 void Object2D<Type2D::NODE, P, TX>::drawImpl(std::integral_constant<Tex2D, Tex2D::IMAGE>) {
-	if (Object2D<Type2D::INTERFACE, P, TX>::texture) {
-		Object2D<Type2D::INTERFACE, P, TX>::texture->draw(pos.x, pos.y, size.x, size.y, angle);
+	if (!Object2D<Type2D::INTERFACE, P, TX>::textureptr) {
+		gLoge("Object2D<Type2D::NODE, Pos2D::" + gToStr(static_cast<int>(P)) + ", Tex2D::" + gToStr(static_cast<int>(TX)) + ">::drawImpl")
+			<< "Texture pointer is null!";
+		return ;
 	}
+	gImage* frame = Object2D<Type2D::INTERFACE, P, TX>::textureptr->frame;
+	if (!frame) {
+		gLoge("Object2D<Type2D::NODE, P, TX>::drawImpl()")
+			<< "Frame is null for object with id: " << this->id;
+		return;
+	}
+	frame->draw(pos.x, pos.y, size.x, size.y, angle);
 }
 
 // SPRITE
 template <Pos2D P, Tex2D TX>
 void Object2D<Type2D::NODE, P, TX>::drawImpl(std::integral_constant<Tex2D, Tex2D::SPRITE>) {
-	if (animator) {
-		animator->draw(pos, size, angle);
+	if (!animator) {
+		gLoge("Object2D<Type2D::NODE, P, TX>::drawImpl()")
+			<< "Animator is null for object with id: " << this->id;
+		return;
 	}
+	animator->draw(pos, size, angle);
+
 }

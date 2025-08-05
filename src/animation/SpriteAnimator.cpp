@@ -48,7 +48,7 @@ void SpriteAnimator::update(float deltaTime) {
 	currentanim->update(deltaTime);
 }
 
-void SpriteAnimator::draw(int x, int y, float angle) {
+void SpriteAnimator::draw(int x, int y, float angle) const {
 	if(!currentanim) {
 		return;
 	}
@@ -60,7 +60,7 @@ void SpriteAnimator::draw(int x, int y, float angle) {
 	}
 }
 
-void SpriteAnimator::draw(int x, int y, int w, int h, float angle) {
+void SpriteAnimator::draw(int x, int y, int w, int h, float angle) const {
 	if(!currentanim) {
 		return;
 	}
@@ -70,7 +70,7 @@ void SpriteAnimator::draw(int x, int y, int w, int h, float angle) {
 	}
 }
 
-void SpriteAnimator::draw(const glm::vec2& pos) {
+void SpriteAnimator::draw(const glm::vec2& pos) const {
 	if(!currentanim) {
 		return;
 	}
@@ -80,7 +80,7 @@ void SpriteAnimator::draw(const glm::vec2& pos) {
 	}
 }
 
-void SpriteAnimator::draw(const glm::vec2& pos, const glm::vec2& size, float angle) {
+void SpriteAnimator::draw(const glm::vec2& pos, const glm::vec2& size, float angle) const {
 	if(!currentanim) {
 		return;
 	}

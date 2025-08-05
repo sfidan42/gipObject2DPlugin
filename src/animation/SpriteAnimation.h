@@ -12,7 +12,7 @@
 
 class SpriteAnimation {
 public:
-	SpriteAnimation(const AnimationFrames* animatedFrames, int fps = 6);
+	SpriteAnimation(const AnimationFrames* animationFrames, int fps = 6);
 	~SpriteAnimation();
 	void update(float deltaTime);
 	void setFps(int fps);
